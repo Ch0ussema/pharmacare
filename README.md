@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PharmaCare
 
-## Getting Started
+Application web de gestion pour une pharmacie indépendante en Tunisie : caisse (POS),
+catalogue produits, suivi du stock et tableau de bord. L'interface est en **français**,
+la monnaie est le **dinar tunisien (TND, 3 décimales)** et les dates sont affichées dans
+le fuseau **Africa/Tunis**.
 
-First, run the development server:
+## Stack
+
+- [Next.js 16](https://nextjs.org) (App Router, Turbopack) et React 19
+- Tailwind CSS v4 + [shadcn/ui](https://ui.shadcn.com) (primitives Radix)
+- Supabase Postgres (accès serveur uniquement, via la clé secrète)
+- TypeScript strict, ESLint
+
+## Prérequis
+
+- **Node.js 22 ou supérieur**
+- npm 10 ou supérieur
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Renseignez ensuite les variables Supabase dans `.env.local` (facultatif en Phase 0 :
+aucune requête base de données n'est encore effectuée).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+SUPABASE_URL=https://votre-projet.supabase.co
+SUPABASE_SECRET_KEY=votre-cle-secrete
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> La clé secrète contourne Row Level Security. Elle ne doit jamais être préfixée par
+> `NEXT_PUBLIC_` ni importée dans un composant client. Voir `src/lib/supabase/admin.ts`.
 
-## Learn More
+## Commandes
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev     # serveur de développement (http://localhost:3000)
+npm run build   # build de production
+npm run start   # serveur de production (après build)
+npm run lint    # ESLint
+npx tsc --noEmit  # vérification TypeScript
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Organisation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/
+    (app)/            # shell applicatif : tableau de bord, caisse, produits, paramètres
+    layout.tsx        # layout racine (lang fr, polices, Toaster)
+    globals.css       # Tailwind v4 + thème shadcn PharmaCare
+    not-found.tsx     # 404 en français
+  components/
+    layout/           # sidebar, topbar, en-têtes de page, états vides
+    ui/               # composants shadcn/ui
+  lib/
+    i18n/             # dictionnaire français typé (source unique des textes)
+    format.ts         # formatage TND / dates (millimes, Africa/Tunis)
+    auth.ts           # point d'extension pour l'authentification (mode démo)
+    supabase/admin.ts # client admin côté serveur (lecture paresseuse des variables)
+```
 
-## Deploy on Vercel
+## Conventions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Argent** : entiers en millimes (`1 DT = 1000`). Utilisez `formatTND` et
+  `parseTNDInput` de `src/lib/format.ts`, jamais de calcul flottant.
+- **Dates** : stockage UTC, affichage `Africa/Tunis` via `formatDate`,
+  `formatDateTime` et `formatTime`.
+- **Textes** : tout le contenu visible provient de `src/lib/i18n/fr.ts`.
+- **Composants** : Server Components par défaut ; `"use client"` uniquement lorsque
+  l'interaction l'exige.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+- [`docs/prd/00-overview.md`](docs/prd/00-overview.md) — vision produit, modèle de données,
+  décisions d'architecture.
+- [`docs/prd/01-phase-0-foundation.md`](docs/prd/01-phase-0-foundation.md) — périmètre de la
+  phase 0 (fondations, shell, design system).
+- [`AGENTS.md`](AGENTS.md) — consignes pour les agents et spécificités de cette version de
+  Next.js.
