@@ -2,6 +2,8 @@ import "server-only";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import type { Database } from "@/types/db";
+
 /**
  * Server-only Supabase admin client.
  *
@@ -14,9 +16,9 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * the build and so Phase 0 remains database-free.
  */
 
-let adminClient: SupabaseClient | null = null;
+let adminClient: SupabaseClient<Database> | null = null;
 
-export type SupabaseAdmin = SupabaseClient;
+export type SupabaseAdmin = SupabaseClient<Database>;
 
 export function getSupabaseAdmin(): SupabaseAdmin {
   if (adminClient) {
@@ -35,7 +37,7 @@ export function getSupabaseAdmin(): SupabaseAdmin {
     );
   }
 
-  adminClient = createClient(url, secretKey, {
+  adminClient = createClient<Database>(url, secretKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
